@@ -29,7 +29,7 @@ public:
 
 protected:
   // Helper wrapper to call the UpdateSubtargetFeatures function under test.
-  void CheckFeatures(llvm::StringRef defaults, std::string user_input,
+  void CheckFeatures(llvm::StringRef defaults, const std::string &user_input,
                      llvm::StringRef expected) {
     std::string features = user_input;
     DisassemblerLLVMC::UpdateSubtargetFeatures(defaults, features);
@@ -152,7 +152,6 @@ TEST_F(TestMCDisasmInstanceRISCV, TestOpcodeBytePrinter) {
 TEST_F(TestMCDisasmInstanceRISCV, IgnoresInvalidFlagsWithoutStopping) {
   // "bad" is invalid (no +/-).
   // It should be ignored, but "+valid" should still be processed.
-  // Console output should show: Warning: Malformed feature 'bad'...
   CheckFeatures("", "+valid,bad", "+valid");
 }
 

@@ -1455,13 +1455,10 @@ bool DisassemblerLLVMC::MCDisasmInstance::IsAuthenticated(
 }
 
 void DisassemblerLLVMC::UpdateSubtargetFeatures(
-    const llvm::StringRef &subtarget_features,
-    std::string &user_feature_overrides) {
+    llvm::StringRef subtarget_features, std::string &user_feature_overrides) {
 
-  std::string warning_reason;
-  llvm::raw_string_ostream ostream(warning_reason);
   std::vector<std::string> valid_user_flags;
-  std::set<std::string> user_disabled_features;
+  llvm::StringSet<> user_disabled_features;
 
   for (llvm::StringRef flag : llvm::split(user_feature_overrides, ",")) {
     bool is_valid = true;
@@ -1469,6 +1466,9 @@ void DisassemblerLLVMC::UpdateSubtargetFeatures(
 
     if (flag.empty())
       continue;
+
+    std::string warning_reason;
+    llvm::raw_string_ostream ostream(warning_reason);
 
     // 1. Must be at least 2 chars (e.g., "+a").
     // 2. Name cannot start with a digit (e.g. "+123" is invalid).
@@ -1491,15 +1491,14 @@ void DisassemblerLLVMC::UpdateSubtargetFeatures(
     }
     if (!is_valid) {
       std::string message =
-          (" Feature flag '" + flag + "': " + warning_reason + ". Ignoring.")
-              .str();
+          ("feature flag '" + flag + "': " + warning_reason + ".").str();
       lldb_private::Debugger::ReportWarning(message, std::nullopt);
       continue;
     }
     valid_user_flags.push_back(flag.str());
 
     if (flag.starts_with('-'))
-      user_disabled_features.insert(flag.substr(1).str());
+      user_disabled_features.insert(flag.substr(1));
   }
 
   // User feature string with only valid flags.
@@ -1518,7 +1517,7 @@ void DisassemblerLLVMC::UpdateSubtargetFeatures(
       bool add_flag = true;
       if (flag.size() >= 2 && flag.starts_with('+')) {
         llvm::StringRef feature_name = flag.substr(1);
-        if (user_disabled_features.count(feature_name.str())) {
+        if (user_disabled_features.count(feature_name)) {
           add_flag = false;
         }
       }

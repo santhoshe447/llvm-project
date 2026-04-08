@@ -86,6 +86,8 @@ if re.match(r".*-(windows-msvc)$", config.target_triple):
 if re.match(r".*-(windows-gnu|mingw32)$", config.target_triple):
     config.available_features.add("windows-gnu")
 
+for arch in config.targets_to_build.split(";"):
+    config.available_features.add(arch.lower() + "-registered-target")
 
 def calculate_arch_features(arch_string):
     # This will add a feature such as x86, arm, mips, etc for each built
